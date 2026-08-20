@@ -142,15 +142,16 @@ http://127.0.0.1:8765/api/status
 
 ## Homebrew
 
-首个 PIK.TAK Release 发布后可使用：
+从 GitHub Release 安装：
 
 ```sh
 brew tap charlzyx/piktak https://github.com/charlzyx/piktak
-brew install piktak
+brew trust --formula charlzyx/piktak/piktak
+brew install charlzyx/piktak/piktak
 brew services start piktak
 ```
 
-Formula 安装 `piktakd`，后台服务读取 `~/.config/piktak/config.yml`。
+Formula 安装 `piktakd`，后台服务读取 `~/.config/piktak/config.yml`。如果 GitHub Release 下载较慢，请让 Homebrew 使用你的 HTTP 代理，例如临时设置 `HTTPS_PROXY`、`HTTP_PROXY` 和 `ALL_PROXY`。
 
 ## PIK.TAK 放在哪一层
 

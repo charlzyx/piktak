@@ -135,15 +135,16 @@ http://127.0.0.1:8765/api/status
 
 ## Homebrew
 
-After the first PIK.TAK release:
+Install from GitHub Releases:
 
 ```sh
 brew tap charlzyx/piktak https://github.com/charlzyx/piktak
-brew install piktak
+brew trust --formula charlzyx/piktak/piktak
+brew install charlzyx/piktak/piktak
 brew services start piktak
 ```
 
-The formula installs `piktakd` and reads `~/.config/piktak/config.yml` when run as a service.
+The formula installs `piktakd` and reads `~/.config/piktak/config.yml` when run as a service. If GitHub Release downloads are slow on your network, pass your HTTP proxy through `HTTPS_PROXY`, `HTTP_PROXY`, and `ALL_PROXY` while running Homebrew.
 
 ## Where PIK.TAK fits
 
