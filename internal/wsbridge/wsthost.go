@@ -263,13 +263,17 @@ func (h *host) runOnce(ctx context.Context) error {
 		Proxy:            http.ProxyFromEnvironment,
 		HandshakeTimeout: 15 * time.Second,
 	}
-	log.Printf("[wsthost] connecting to %s", u.String())
+	logURL := *u
+	logQuery := logURL.Query()
+	logQuery.Del("code")
+	logURL.RawQuery = logQuery.Encode()
+	log.Printf("[wsthost] connecting to %s", logURL.String())
 	ws, resp, err := d.DialContext(ctx, u.String(), nil)
 	if err != nil {
 		if resp != nil {
-			return fmt.Errorf("dial %s: %s", u, resp.Status)
+			return fmt.Errorf("dial %s: %s", logURL.String(), resp.Status)
 		}
-		return fmt.Errorf("dial %s: %w", u, err)
+		return fmt.Errorf("dial %s: %w", logURL.String(), err)
 	}
 	h.ws = ws
 	defer func() { _ = ws.Close(); h.ws = nil }()
@@ -288,7 +292,7 @@ func (h *host) runOnce(ctx context.Context) error {
 	case "hello.err":
 		return fmt.Errorf("pairing rejected")
 	case "hello.ok":
-		log.Printf("[wsthost] paired: hostId=%s", h.cfg.Code)
+		log.Printf("[wsthost] paired: service=%s", h.cfg.Name)
 		if h.cfg.Status != nil {
 			h.cfg.Status.SetConnected(true)
 			defer h.cfg.Status.SetConnected(false)

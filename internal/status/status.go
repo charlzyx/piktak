@@ -16,15 +16,15 @@ import (
 var page embed.FS
 
 type State struct {
-	mu        sync.RWMutex
-	Name      string
-	Protocol  string
-	Relay     string
-	Code      string
-	Local     string
-	Connected bool
-	Started   time.Time
-	Requests  uint64
+	mu       sync.RWMutex
+	Name     string
+	Protocol string
+	Relay    string
+	Code     string
+	Local    string
+	active   int
+	Started  time.Time
+	Requests uint64
 }
 
 type View struct {
@@ -43,13 +43,17 @@ func (s *State) Snapshot() View {
 	defer s.mu.RUnlock()
 	return View{
 		Name: s.Name, Protocol: s.Protocol, Relay: s.Relay, Code: s.Code,
-		Local: s.Local, Connected: s.Connected, Started: s.Started, Requests: s.Requests,
+		Local: s.Local, Connected: s.active > 0, Started: s.Started, Requests: s.Requests,
 	}
 }
 
 func (s *State) SetConnected(connected bool) {
 	s.mu.Lock()
-	s.Connected = connected
+	if connected {
+		s.active++
+	} else if s.active > 0 {
+		s.active--
+	}
 	s.mu.Unlock()
 }
 

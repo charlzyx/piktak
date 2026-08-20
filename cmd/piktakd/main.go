@@ -66,6 +66,7 @@ func main() {
 		}
 	}
 
+	var machineStatus *status.State
 	if cfg != nil && cfg.Status {
 		statusRelay := cfg.Relay
 		if statusRelay == "" && len(services) > 0 {
@@ -75,19 +76,25 @@ func main() {
 		if statusCode == "" && len(services) > 0 {
 			statusCode = services[0].Code
 		}
-		state := &status.State{
-			Name: "piktakd", Protocol: "local", Relay: statusRelay,
-			Code: statusCode, Local: "built-in local status", Started: time.Now(),
+		machineStatus = &status.State{
+			Name: "This Machine", Protocol: "multiple", Relay: statusRelay,
+			Code: statusCode, Local: fmt.Sprintf("%d configured service(s)", len(services)), Started: time.Now(),
 		}
 		addr := cfg.StatusAddr
 		if addr == "" {
 			addr = "127.0.0.1:0"
 		}
-		bound, err := status.ServeAddr(ctx, state, addr)
+		bound, err := status.ServeAddr(ctx, machineStatus, addr)
 		if err != nil {
 			log.Fatalf("piktakd: status: %v", err)
 		}
 		log.Printf("piktakd local status page: http://%s/ (API: http://%s/api/status)", bound, bound)
+	}
+
+	if machineStatus != nil {
+		for i := range services {
+			services[i].Status = machineStatus
+		}
 	}
 
 	var wg sync.WaitGroup
