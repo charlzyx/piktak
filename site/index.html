@@ -13,52 +13,59 @@
   <div class="shell">
     <header>
       <a class="wordmark" href="#top">PIK.TAK</a>
-      <nav><a href="https://github.com/charlzyx/piktak">GitHub</a><a class="button small" href="https://github.com/charlzyx/piktak#cloudflare-quick-start">Get PIK.TAK</a></nav>
+      <nav>
+        <button class="language" type="button" aria-label="切换到中文" data-language-toggle>中文</button>
+        <a href="https://github.com/charlzyx/piktak">GitHub</a>
+        <a class="button small" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md"><span data-en>Get PIK.TAK</span><span data-zh>开始使用</span></a>
+      </nav>
     </header>
 
     <main id="top">
       <section class="hero">
         <p class="brand-line">Pik. Tak. Paired.</p>
-        <h1>Use what runs on localhost<br>from the devices you carry.</h1>
-        <p class="lead">PIK.TAK connects phones and browsers to selected services on your machine, without putting the whole device on a VPN.</p>
-        <div class="actions"><a class="button" href="https://github.com/charlzyx/piktak#cloudflare-quick-start">Get PIK.TAK <span>↗</span></a><a href="https://github.com/charlzyx/piktak">View source</a></div>
+        <h1><span data-en>Use what runs on localhost<br>from the devices you carry.</span><span data-zh>随身使用<br>运行在本机的<br>服务。</span></h1>
+        <p class="lead"><span data-en>PIK.TAK connects phones and browsers to selected services on your machine, without putting the whole device on a VPN.</span><span data-zh>PIK.TAK 把手机和浏览器接到电脑上的指定服务，不需要让整台设备加入 VPN。</span></p>
+        <div class="actions"><a class="button" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md"><span data-en>Get PIK.TAK ↗</span><span data-zh>开始使用 ↗</span></a><a href="https://github.com/charlzyx/piktak"><span data-en>View source</span><span data-zh>查看源码</span></a></div>
       </section>
 
       <section class="product" aria-label="PIK.TAK connection path">
-        <div class="window-bar"><span><i></i><i></i><i></i></span><b>PIK.TAK / THIS MACHINE</b><em>CONNECTED</em></div>
+        <div class="window-bar"><span><i></i><i></i><i></i></span><b>PIK.TAK / <span data-en>THIS MACHINE</span><span data-zh>本机</span></b><em><span data-en>CONNECTED</span><span data-zh>已连接</span></em></div>
         <div class="product-body">
-          <div class="machine"><span>THIS MACHINE</span><h2>MacBook Pro</h2><p>2 local services available</p></div>
+          <div class="machine"><span data-en>THIS MACHINE</span><span data-zh>本机</span><h2>MacBook Pro</h2><p><span data-en>2 local services available</span><span data-zh>2 个本地服务可用</span></p></div>
           <div class="route">
-            <article><small>CLIENT</small><strong>Phone</strong><span>browser</span></article><i>→</i>
+            <article><small>CLIENT</small><strong><span data-en>Phone</span><span data-zh>手机</span></strong><span data-en>browser</span><span data-zh>浏览器</span></article><i>→</i>
             <article><small>RELAY</small><strong>Cloudflare</strong><span>Worker + DO</span></article><i>→</i>
-            <article class="active"><small>MACHINE</small><strong>piktakd</strong><span>outbound</span></article><i>→</i>
+            <article class="active"><small>MACHINE</small><strong>piktakd</strong><span data-en>outbound</span><span data-zh>主动连出</span></article><i>→</i>
             <article><small>SERVICE</small><strong>DSH</strong><span>127.0.0.1:3080</span></article>
           </div>
-          <div class="events"><p><time>12:08:41</time><b>paired</b><span>machine code accepted</span></p><p><time>12:08:43</time><b>forward</b><span>GET /api/status</span></p><p><time>12:08:43</time><b>stream</b><span>response returned · 18 ms</span></p></div>
+          <div class="events"><p><time>12:08:41</time><b>paired</b><span data-en>machine code accepted</span><span data-zh>机器码已通过</span></p><p><time>12:08:43</time><b>forward</b><span>GET /api/status</span></p><p><time>12:08:43</time><b>stream</b><span data-en>response returned · 18 ms</span><span data-zh>响应返回 · 18 ms</span></p></div>
         </div>
       </section>
 
       <section class="statement">
-        <p class="kicker">WHY PIK.TAK</p>
-        <h2>One local service should not require a whole VPN.</h2>
-        <p>PIK.TAK started as a way to use DSH and PiAgent from a phone. It now connects any selected HTTP, WebSocket, or TCP service through a Relay you control.</p>
+        <p class="kicker"><span data-en>WHY PIK.TAK</span><span data-zh>为什么做 PIK.TAK</span></p>
+        <h2><span data-en>One local service should not require a whole VPN.</span><span data-zh>访问一个本地服务，不该占用整个 VPN。</span></h2>
+        <p><span data-en>PIK.TAK started as a way to use DSH and PiAgent from a phone. It now connects any selected HTTP, WebSocket, or TCP service through a Relay you control.</span><span data-zh>PIK.TAK 最初用于从手机访问 DSH 和 PiAgent。现在，它可以通过你控制的 Relay 连接指定的 HTTP、WebSocket 或 TCP 服务。</span></p>
       </section>
 
       <section class="columns">
-        <article><p class="kicker">SERVICE, NOT NETWORK</p><h3>Connect only what you need.</h3><p>The Machine dials out. Your phone opens a domain. No public IP, port forwarding, or phone app.</p></article>
-        <article><p class="kicker">YOUR RELAY</p><h3>Cloudflare or Go.</h3><p>Deploy the Worker in your own account, or run the Go Relay yourself. PIK.TAK does not operate a public tunnel cloud.</p></article>
-        <article><p class="kicker">BRIDGE TODAY</p><h3>Native tomorrow.</h3><p>Bridge existing services without code changes. Native applications can later use pairing, discovery, capabilities, and tunnels directly.</p></article>
+        <article><p class="kicker"><span data-en>SERVICE, NOT NETWORK</span><span data-zh>连接服务，不是网络</span></p><h3><span data-en>Connect only what you need.</span><span data-zh>只连接需要的服务。</span></h3><p><span data-en>The Machine dials out. Your phone opens a domain. No public IP, port forwarding, or phone app.</span><span data-zh>Machine 主动连出，手机只需打开域名。不需要公网 IP、端口转发或额外 App。</span></p></article>
+        <article><p class="kicker"><span data-en>YOUR RELAY</span><span data-zh>你的 RELAY</span></p><h3><span data-en>Cloudflare or Go.</span><span data-zh>Cloudflare 或 Go。</span></h3><p><span data-en>Deploy the Worker in your account, or run the Go Relay yourself. PIK.TAK does not operate a public tunnel cloud.</span><span data-zh>把 Worker 部署在自己的账号中，或者运行 Go Relay。PIK.TAK 不提供公共中继云服务。</span></p></article>
+        <article><p class="kicker"><span data-en>BRIDGE TODAY</span><span data-zh>先用 BRIDGE 接入</span></p><h3><span data-en>Native tomorrow.</span><span data-zh>以后再原生集成。</span></h3><p><span data-en>Bridge existing services without code changes. Native applications can later use pairing, discovery, capabilities, and tunnels directly.</span><span data-zh>现有服务无需改代码即可接入。以后应用可以直接使用配对、发现、能力协商和 Tunnel。</span></p></article>
       </section>
 
       <section class="relay-section">
-        <div><p class="kicker">TWO RELAY BACKENDS</p><h2>Choose the path that fits.</h2></div>
-        <div class="relay-grid"><article><span>01</span><h3>Cloudflare Worker</h3><p>No VPS. HTTPS, custom domains, Access, and Durable Object routing. Built for phones and browsers.</p></article><article><span>02</span><h3>Go Relay</h3><p>Self-hosted, transparent TCP, and no Cloudflare dependency. The protocol reference implementation.</p></article></div>
+        <div><p class="kicker"><span data-en>TWO RELAY BACKENDS</span><span data-zh>两种 RELAY</span></p><h2><span data-en>Choose the path that fits.</span><span data-zh>选择适合你的连接方式。</span></h2></div>
+        <div class="relay-grid"><article><span>01</span><h3>Cloudflare Worker</h3><p><span data-en>No VPS. HTTPS, custom domains, Access, and Durable Object routing. Cloudflare Access is required for every public Service.</span><span data-zh>不需要 VPS，支持 HTTPS、自定义域名、Access 和 Durable Object 路由。每个公开 Service 都必须配置 Cloudflare Access。</span></p></article><article><span>02</span><h3>Go Relay</h3><p><span data-en>Self-hosted, transparent TCP, and no Cloudflare dependency. Raw ingress must be restricted by your network.</span><span data-zh>自建、透明 TCP、不依赖 Cloudflare。Raw ingress 必须由网络边界限制访问。</span></p></article></div>
       </section>
 
-      <section class="cta"><p class="kicker">PIK. TAK. PAIRED.</p><h2>Pair your first local service.</h2><div class="actions"><a class="button" href="https://github.com/charlzyx/piktak#cloudflare-quick-start">Read the setup <span>↗</span></a><a href="https://github.com/charlzyx/piktak/blob/main/docs/protocol.md">Explore the protocol</a></div></section>
+      <section class="security"><p class="kicker"><span data-en>SECURITY FIRST</span><span data-zh>先配置安全入口</span></p><h2><span data-en>Do not expose a real service without Access.</span><span data-zh>没有 Access，不要开放真实服务。</span></h2><p><span data-en>The machine code only protects Host attachment. It does not authenticate browser users. Configure Cloudflare Access before connecting DSH, an Agent, or an admin panel.</span><span data-zh>机器码只保护 Host 接入，不能认证浏览器用户。连接 DSH、Agent 或管理面板前，必须先配置 Cloudflare Access。</span></p></section>
+
+      <section class="cta"><p class="kicker">PIK. TAK. PAIRED.</p><h2><span data-en>Pair your first local service.</span><span data-zh>连接你的第一个本地服务。</span></h2><div class="actions"><a class="button" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md"><span data-en>Read the setup ↗</span><span data-zh>阅读部署说明 ↗</span></a><a href="https://github.com/charlzyx/piktak/blob/main/docs/protocol.md"><span data-en>Explore the protocol</span><span data-zh>查看协议</span></a></div></section>
     </main>
 
-    <footer><b>PIK.TAK</b><span>Pair remote clients with local services.</span></footer>
+    <footer><b>PIK.TAK</b><span data-en>Pair remote clients with local services.</span><span data-zh>把远程客户端接到本地服务。</span></footer>
   </div>
+  <script src="./script.js"></script>
 </body>
 </html>

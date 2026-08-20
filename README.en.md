@@ -2,107 +2,61 @@
 
 ## Pik. Tak. Paired.
 
-PIK.TAK connects phones, browsers, and remote clients to services running on your machine.
+PIK.TAK is a Relay and transport protocol that connects remote Clients to Services running on a local Machine. The Machine connects outbound, so it needs no public IP or port forwarding.
 
-It started as a way to use DSH and PiAgent from a phone without keeping Tailscale active. Today, any HTTP, WebSocket, or TCP service can connect through a Cloudflare Worker or a self-hosted Go Relay.
+[中文](README.md) · [Website](https://piktak.pages.dev) · [Protocol](docs/protocol.md) · [Cloudflare setup](piktak-cf/README.md) · [v0.1.0](https://github.com/charlzyx/piktak/releases/tag/v0.1.0)
 
-No public IP. No port forwarding. No client on the phone.
+> [!WARNING]
+> PIK.TAK does not yet provide a complete public-internet security model. Cloudflare mode uses a shared machine code for Host attachment, passes traffic through Cloudflare, and is not end-to-end encrypted. **Every public Service hostname must be protected by Cloudflare Access. Do not connect DSH, an Agent, an admin panel, or another real Service before Access is working.**
 
-[中文](README.md) · [Website](https://piktak.pages.dev) · [Protocol](docs/protocol.md) · [Cloudflare setup](piktak-cf/README.md)
-
-## How it works
+## Architecture
 
 ```text
-Phone / browser / Client
+Phone / Browser / Client
            │
            ▼
       PIK.TAK Relay
  Cloudflare Worker / Go
            │ outbound connection
            ▼
-      Your Machine
+        Machine
            │
         piktakd
            │ Bridge
            ▼
- DSH · PiAgent · local services
+ DSH · PiAgent · local Service
 ```
 
-Users see a **Machine** and its **Services**. The protocol uses five precise roles:
+### Roles
 
-- **Client** — a phone browser or native client;
-- **Relay** — lets both ends find each other and carries requests and data;
-- **Host** — the protocol role that connects outbound from a Machine;
-- **Bridge** — connects an existing localhost service that does not speak PIK.TAK;
-- **Service** — DSH, PiAgent, a development dashboard, or any other local service.
-
-`piktakd` is the daemon running on a Machine. It implements the Host, maintains Relay connections, and bridges existing services.
-
-## Why PIK.TAK
-
-I run DSH and PiAgent on my computer and wanted to keep using them from my phone. Tailscale solves the network problem, but keeping a VPN active for one local web app felt heavier than necessary.
-
-The first version was a Go Relay that proved an outbound Host connection, discovery, and data tunnels. I later added a Cloudflare Worker because it needs no extra VPS and works with domains, HTTPS, Durable Objects, and Cloudflare Access.
-
-DSH is the first real application, not the boundary. Agent UIs, development dashboards, home services, and other local applications can use the same path.
-
-## What works today
-
-- `piktakd`, a static Go binary that bridges one or more local services;
-- HTTP requests, streaming responses, and browser WebSockets;
-- Cloudflare Worker and Durable Object routing;
-- Cloudflare Access for browser entry points;
-- transparent TCP through the Go Relay;
-- machine-code allowlists, reconnects, and Host/Origin rewriting;
-- a loopback-only status page and JSON API.
-
-Pairing currently uses a shared machine code. One-time codes, long-term identities, revocation, and end-to-end encryption remain roadmap work.
-
-## Two Relay backends
-
-### Cloudflare Worker
-
-For local web services used from a phone or browser. It needs no VPS and works with custom domains, HTTPS, Access, and Durable Objects. You deploy it in your own Cloudflare account.
-
-### Go Relay
-
-For self-hosting and transparent TCP. It is also the reference implementation of the PIK.TAK protocol and has no Cloudflare dependency.
-
-Cloudflare is a convenient Relay backend, not the product boundary.
-
-## Run the Go Relay in three minutes
-
-Requires Go 1.23+ and Python 3.
-
-```sh
-make run-relay       # Relay on :7681, ingress on :7682
-make run-http        # Example service on 127.0.0.1:7531
-make run-bridge      # Start piktakd
-make run-curl        # Request the service through the Relay
-```
+| Name | Meaning |
+| --- | --- |
+| **Client** | The requesting side, such as a phone browser or native client |
+| **Relay** | Lets a Client find a Host and carries control messages and data |
+| **Machine** | The local computer or device shown to the user |
+| **Host** | The protocol role that connects outbound from a Machine |
+| **Bridge** | Connects an existing localhost application without changing it |
+| **Service** | DSH, PiAgent, a development dashboard, or another HTTP, WebSocket, or TCP service |
 
 ```text
-curl → piktak-relay → piktakd → 127.0.0.1:7531
+Client → Relay → Host (piktakd) → Bridge → Service
 ```
 
-Native Host/Client protocol examples live in [`examples/`](examples/) and are not published as user-facing commands.
+PIK.TAK does not run a public Relay cloud. Deploy the Cloudflare backend in your account or run the Go Relay yourself.
 
-## Cloudflare quick start
+## Components
 
-### 1. Deploy the Relay
+| Component | Path | Purpose |
+| --- | --- | --- |
+| `piktakd` | `cmd/piktakd` | Machine daemon: Host, Relay connections, Service bridges, and local status |
+| `piktak-relay` | `cmd/piktak-relay` | Self-hosted Go Relay with a control port and transparent TCP ingress |
+| Cloudflare Relay | `piktak-cf/worker` | Worker + Durable Object for HTTP, streaming responses, and browser WebSockets |
+| Native examples | `examples/echo-host`, `examples/echo-client` | Native Host/Client examples; not published as user commands |
+| Protocol | `internal/wire`, `internal/l0`, `internal/l2`, `internal/l3` | Framing, pairing, capability negotiation, and adapters |
 
-```sh
-cd piktak-cf/worker
-npm install
-npm run typecheck
-npx wrangler deploy
-```
+## `piktakd`
 
-See [`piktak-cf/README.md`](piktak-cf/README.md) for deployment and Access setup.
-
-### 2. Configure the Machine
-
-Save as `~/.config/piktak/config.yml`:
+`piktakd` is the only Machine-side program most users need. One process can register multiple Services:
 
 ```yaml
 relay: wss://relay.example.com/host
@@ -111,31 +65,94 @@ status: true
 status_addr: 127.0.0.1:8765
 
 services:
-  - name: agent
+  - name: dsh
     protocol: ws
     local: 127.0.0.1:3080
     rewrite_host: true
+
+  - name: dashboard
+    protocol: ws
+    local: 127.0.0.1:8080
 ```
 
-`name` is the Relay routing key. With subdomain routing, `agent.example.com` connects to the Service named `agent`.
-
-### 3. Run
+- `relay`: Relay address used by the outbound Machine connection;
+- `code`: shared machine code used by the current release;
+- `name`: Service routing key, normally matching the first label of its browser hostname;
+- `protocol`: `ws` for the Cloudflare Relay, `tcp` for the Go Relay;
+- `local`: local target;
+- `rewrite_host`: compatibility for applications that trust loopback or same-origin requests;
+- `status_addr`: loopback-only status page and JSON API.
 
 ```sh
 piktakd -config ~/.config/piktak/config.yml
 piktakd help -config ~/.config/piktak/config.yml
 ```
 
-The status page listens on loopback by default:
-
 ```text
 http://127.0.0.1:8765/
 http://127.0.0.1:8765/api/status
 ```
 
-## Homebrew
+The status API reports whether pairing is configured without returning the machine code.
 
-Install from GitHub Releases:
+## Relay backends
+
+### Cloudflare Relay
+
+The Cloudflare backend is intended for local web Services used from phones and browsers:
+
+- the Worker accepts HTTP and WebSocket traffic;
+- a Durable Object holds the active Host session for each Service name;
+- `piktakd` attaches to `/host` over an outbound WebSocket;
+- every browser hostname must be protected by Cloudflare Access;
+- no separate VPS is required.
+
+#### One-click deployment
+
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/charlzyx/piktak/tree/main/piktak-cf/worker)
+
+The button creates the Worker and Durable Object. You must still:
+
+1. generate a random machine code and store it as the `PIKTAK_CODES` Worker Secret;
+2. give `/host` a Machine hostname or an Access bypass rule;
+3. bind a separate hostname for every browser Service;
+4. **create a Cloudflare Access Application and Allow Policy for every browser Service hostname;**
+5. set `PIKTAK_REQUIRE_ACCESS = "1"` and redeploy after Access is working;
+6. verify that unauthenticated Service requests redirect to Access and direct Worker browser requests return `401`.
+
+See [`piktak-cf/README.md`](piktak-cf/README.md) for the complete setup.
+
+Manual deployment:
+
+```sh
+cd piktak-cf/worker
+npm install
+npm run typecheck
+openssl rand -hex 16 | npx wrangler secret put PIKTAK_CODES
+npx wrangler deploy
+```
+
+### Go Relay
+
+The Go backend is the self-hosted protocol reference implementation for transparent TCP:
+
+```text
+Client / ingress → piktak-relay → piktakd → local Service
+```
+
+```sh
+make run-relay       # control :7681 / ingress :7682
+make run-http        # example Service on 127.0.0.1:7531
+make run-bridge      # start piktakd
+make run-curl        # request through the Relay
+```
+
+> [!CAUTION]
+> Go Relay raw ingress currently has no per-connection authentication. Never expose it directly to the public internet. Restrict it with a firewall, private network, or IP allowlist.
+
+## Installation
+
+### Homebrew
 
 ```sh
 brew tap charlzyx/piktak https://github.com/charlzyx/piktak
@@ -144,21 +161,24 @@ brew install charlzyx/piktak/piktak
 brew services start piktak
 ```
 
-The formula installs `piktakd` and reads `~/.config/piktak/config.yml` when run as a service. If GitHub Release downloads are slow on your network, pass your HTTP proxy through `HTTPS_PROXY`, `HTTP_PROXY`, and `ALL_PROXY` while running Homebrew.
+The formula installs `piktakd` and reads `~/.config/piktak/config.yml`. If GitHub Release downloads are slow, pass your proxy through `HTTPS_PROXY`, `HTTP_PROXY`, and `ALL_PROXY` while running Homebrew.
 
-## Where PIK.TAK fits
+### Release assets
 
-| Tool | Primary model |
-| --- | --- |
-| Tailscale | Connect devices and private networks |
-| ngrok | Hosted public tunnels |
-| frp | Port forwarding through a self-hosted public server |
-| cloudflared | Connect localhost to Cloudflare |
-| **PIK.TAK** | Pair a remote Client with a selected local Service |
+[`v0.1.0`](https://github.com/charlzyx/piktak/releases/tag/v0.1.0) provides static Linux and macOS binaries for amd64 and arm64. Release CI calculates their SHA-256 values and updates `Formula/piktak.rb` automatically.
 
-If you only need to connect one ordinary HTTP service to Cloudflare, cloudflared is more mature. PIK.TAK is working toward a Relay-independent pairing and transport protocol; Cloudflare and Go are two backends.
+## Available today
 
-## Protocol direction
+- multiple Services in one `piktakd` process;
+- HTTP, streaming responses, and browser WebSockets;
+- Cloudflare Worker and Durable Object routing;
+- transparent TCP through the Go Relay;
+- machine-code allowlists, reconnects, and protocol version checks;
+- Host/Origin loopback compatibility;
+- loopback-only status page and redacted JSON API;
+- Linux/macOS amd64/arm64 releases and Homebrew formula.
+
+## Protocol
 
 ```text
 L0  identity and pairing
@@ -167,25 +187,29 @@ L2  capability negotiation
 L3  application adapters
 ```
 
-Existing services connect through the Bridge without code changes. Future applications can integrate Host and Client SDKs for identity, pairing, service discovery, capabilities, and tunnels. See [`docs/protocol.md`](docs/protocol.md).
+L0 currently uses a shared machine code. Existing Services connect through the Bridge; future applications can integrate Host and Client SDKs directly. See [`docs/protocol.md`](docs/protocol.md).
 
-## Security and limitations
+## Security boundaries
 
-- The current machine code is a shared static secret, not mature device pairing.
-- Generate a random code; never use the example value on the public internet.
-- Cloudflare Access and the Host machine code protect separate boundaries.
+- **Cloudflare Access is required for every public browser entry point. It is not an optional enhancement.**
+- The machine code protects Host attachment; it does not authenticate browser users.
+- A machine code is a shared static secret, not mature device pairing.
+- Never commit it, include it in screenshots, or print it in public logs.
 - Cloudflare mode passes through Cloudflare and is not end-to-end encrypted.
-- Go Relay raw ingress has no per-connection authentication; restrict it with a firewall or IP allowlist.
-- Expose only the services you need and review their Host, Origin, and loopback trust rules.
+- Expose only required Services and review their Host, Origin, cookie, and loopback trust rules.
+- Restrict all Go raw ingress traffic at the network boundary.
 - The project is early.
 
-## Next
+## Origin
 
-- one-time pairing codes and QR codes;
+PIK.TAK started as a way to use DSH and PiAgent from a phone without keeping Tailscale active. DSH is the first real application, but PIK.TAK can bridge any suitable HTTP, WebSocket, or TCP Service.
+
+## Roadmap
+
+- one-time pairing and QR codes;
 - long-term identities, confirmation, revocation, and key rotation;
 - Service discovery under a Machine;
 - Go and TypeScript Host/Client SDKs;
-- native DSH and PiAgent integration examples;
 - end-to-end encrypted tunnels opaque to the Relay.
 
 ## License
