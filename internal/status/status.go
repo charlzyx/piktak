@@ -28,21 +28,21 @@ type State struct {
 }
 
 type View struct {
-	Name      string
-	Protocol  string
-	Relay     string
-	Code      string
-	Local     string
-	Connected bool
-	Started   time.Time
-	Requests  uint64
+	Name              string
+	Protocol          string
+	Relay             string
+	PairingConfigured bool
+	Local             string
+	Connected         bool
+	Started           time.Time
+	Requests          uint64
 }
 
 func (s *State) Snapshot() View {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return View{
-		Name: s.Name, Protocol: s.Protocol, Relay: s.Relay, Code: s.Code,
+		Name: s.Name, Protocol: s.Protocol, Relay: s.Relay, PairingConfigured: s.Code != "",
 		Local: s.Local, Connected: s.active > 0, Started: s.Started, Requests: s.Requests,
 	}
 }
