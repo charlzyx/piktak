@@ -134,11 +134,32 @@ npx wrangler deploy
 
 ### Go Relay
 
-The Go backend is the self-hosted protocol reference implementation for transparent TCP:
+The Go backend is the self-hosted protocol reference implementation for transparent TCP. It uses a dynamic pairing flow independent from the Cloudflare Worker: a one-time `pairing_code` mints a persistent credential saved on the Machine. Cloudflare `code` / `PIKTAK_CODES` is unchanged.
+
+```yaml
+relay: 127.0.0.1:7681
+pairing_code: one-time-code  # first start only
+machine_id: ""
+credential_file: ~/.config/piktak/go-credential
+services:
+  - name: dsh
+    protocol: tcp
+    local: 127.0.0.1:3080
+```
+
+Each Go Host also uses a one-time token for inbound data channels, preventing an authenticated Host from guessing another Host's connection ID. Raw ingress remains transparent TCP; expose it only on a controlled network or dedicated ingress port.
 
 ```text
 Client / ingress → piktak-relay → piktakd → local Service
 ```
+
+Generate a one-time pairing code when the Relay has `PIKTAK_STATE` configured:
+
+```sh
+PIKTAK_STATE=/var/lib/piktak/state.json piktak-relay pair
+```
+
+Put the output in `pairing_code`. After the first connection, `piktakd` saves the credential and reconnects with it automatically.
 
 ```sh
 make run-relay       # control :7681 / ingress :7682
@@ -148,7 +169,7 @@ make run-curl        # request through the Relay
 ```
 
 > [!CAUTION]
-> Go Relay raw ingress currently has no per-connection authentication. Never expose it directly to the public internet. Restrict it with a firewall, private network, or IP allowlist.
+> Go Relay raw ingress is transparent TCP, so it cannot inspect application bytes for authentication. Never expose it directly to the public internet; restrict it with a firewall, private network, or dedicated ingress capability.
 
 ## Installation
 

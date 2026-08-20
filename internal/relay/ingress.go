@@ -48,15 +48,19 @@ func (r *Relay) serveIngress(ctx context.Context, browser net.Conn) {
 	}
 
 	connID := r.newConnID()
+	token := ""
+	if hs.dataToken {
+		token = newToken()
+	}
 	log.Printf("inbound accepted connID=%s remote=%s", connID, browser.RemoteAddr())
-	rc := &rawConn{id: connID, host: hs, browser: browser, ready: make(chan struct{})}
+	rc := &rawConn{id: connID, host: hs, token: token, browser: browser, ready: make(chan struct{})}
 	r.mu.Lock()
 	r.rawConns[connID] = rc
 	r.mu.Unlock()
 
 	if err := hs.conn.WriteFrame(ctx, wire.Envelope{
 		T:       "inbound",
-		Payload: wire.MustJSON(dataBody{ConnID: connID}),
+		Payload: wire.MustJSON(dataBody{ConnID: connID, Token: token}),
 	}); err != nil {
 		r.mu.Lock()
 		delete(r.rawConns, connID)

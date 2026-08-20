@@ -18,22 +18,24 @@ func (r *Relay) serveData(ctx context.Context, c *wire.TCPConn, first wire.Envel
 	decode(first.Payload, &db)
 	connID := db.ConnID
 
-	_ = c.WriteFrame(ctx, wire.Envelope{
-		T:       "data.ack",
-		Payload: wire.MustJSON(dataBody{ConnID: connID}),
-	})
-
 	r.mu.Lock()
 	rc := r.rawConns[connID]
+	if rc != nil && rc.host != nil && rc.host.dataToken && db.Token != rc.token {
+		rc = nil
+	}
 	if rc != nil {
 		// Claim it so the ingress timeout path can't double-clean.
 		delete(r.rawConns, connID)
 	}
 	r.mu.Unlock()
 	if rc == nil {
-		// No matching inbound (timed out, unknown, or duplicate); drop.
+		// No matching inbound or wrong token; drop without acknowledging.
 		return
 	}
+	_ = c.WriteFrame(ctx, wire.Envelope{
+		T:       "data.ack",
+		Payload: wire.MustJSON(dataBody{ConnID: connID}),
+	})
 
 	rawNet, br := c.Raw()
 	close(rc.ready) // hand the browser socket off to this splice.

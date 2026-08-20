@@ -25,6 +25,8 @@ package relay
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -32,6 +34,7 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/charlzyx/piktak/internal/l0"
 	"github.com/charlzyx/piktak/internal/wire"
@@ -135,7 +138,29 @@ func (r *Relay) handleHello(ctx context.Context, c wire.FrameConn, hello wire.En
 		})
 		return
 	}
-	if _, err := r.L0.Authorize(hb.Code); err != nil {
+	if hb.Code != "" || (hb.PairingCode == "" && hb.Credential == "") {
+		_ = c.WriteFrame(ctx, wire.Envelope{T: "hello.err", Payload: wire.MustJSON(errBody{Code: "PAIRING_REQUIRED"})})
+		return
+	}
+	var issued string
+	var identity l0.Identity
+	var authErr error
+	if hb.PairingCode != "" {
+		issuer, ok := r.L0.(l0.CredentialIssuer)
+		if !ok {
+			authErr = l0.ErrUnauthorized
+		} else {
+			identity, issued, authErr = issuer.Pair(hb.PairingCode, hb.MachineID)
+			hb.MachineID = identity.Subject
+			hb.Credential = issued
+		}
+	} else {
+		identity, authErr = r.L0.Authorize(hb.Credential)
+		if identity.Subject != "" && hb.HostID == "" {
+			hb.HostID = identity.Subject
+		}
+	}
+	if authErr != nil {
 		_ = c.WriteFrame(ctx, wire.Envelope{T: "hello.err", Payload: wire.MustJSON(errBody{Code: "UNAUTHORIZED"})})
 		return
 	}
@@ -164,7 +189,7 @@ func (r *Relay) serveHost(ctx context.Context, c wire.FrameConn, hb helloBody) {
 		hostID = fmt.Sprintf("host-%d", atomic.AddUint64(&r.nextID, 1))
 	}
 	hctx, cancel := context.WithCancel(ctx)
-	hs := &hostSession{id: hostID, conn: c, cancel: cancel}
+	hs := &hostSession{id: hostID, machineID: hb.MachineID, conn: c, cancel: cancel, dataToken: hasFeature(hb.Features, "data-token")}
 
 	r.mu.Lock()
 	if old, dup := r.hosts[hostID]; dup {
@@ -185,7 +210,7 @@ func (r *Relay) serveHost(ctx context.Context, c wire.FrameConn, hb helloBody) {
 		cancel()
 	}()
 
-	_ = c.WriteFrame(ctx, wire.Envelope{T: "hello.ok", Payload: wire.MustJSON(helloOK{HostID: hostID})})
+	_ = c.WriteFrame(ctx, wire.Envelope{T: "hello.ok", Payload: wire.MustJSON(helloOK{HostID: hostID, MachineID: hb.MachineID, Credential: hb.Credential})})
 
 	for {
 		env, err := c.ReadFrame(hctx)
@@ -316,13 +341,23 @@ func (r *Relay) newTunnelID() string {
 	return fmt.Sprintf("t%d", atomic.AddUint64(&r.nextTun, 1))
 }
 
+func newToken() string {
+	var b [24]byte
+	if _, err := rand.Read(b[:]); err != nil {
+		return fmt.Sprintf("fallback-%d", time.Now().UnixNano())
+	}
+	return hex.EncodeToString(b[:])
+}
+
 // --- types ---
 
 type hostSession struct {
-	id     string
-	conn   wire.FrameConn
-	local  string // exposed local addr (transparent); "" until port.expose
-	cancel context.CancelFunc
+	id        string
+	machineID string
+	conn      wire.FrameConn
+	local     string
+	cancel    context.CancelFunc
+	dataToken bool
 }
 
 type clientSession struct{ conn wire.FrameConn }
@@ -337,8 +372,9 @@ type tunnelSession struct {
 type rawConn struct {
 	id      string
 	host    *hostSession
+	token   string
 	browser net.Conn
-	ready   chan struct{} // closed when the host's data channel attached
+	ready   chan struct{}
 }
 
 // --- control-frame bodies the relay owns ---
@@ -348,15 +384,21 @@ type rawConn struct {
 // struct, so they do not import this package.
 
 type helloBody struct {
-	Role     string `json:"role,omitempty"`
-	Protocol string `json:"protocol,omitempty"`
-	Version  int    `json:"version,omitempty"`
-	Code     string `json:"code,omitempty"`
-	HostID   string `json:"hostId,omitempty"`
+	Role        string   `json:"role,omitempty"`
+	Protocol    string   `json:"protocol,omitempty"`
+	Version     int      `json:"version,omitempty"`
+	Code        string   `json:"code,omitempty"`
+	Credential  string   `json:"credential,omitempty"`
+	PairingCode string   `json:"pairingCode,omitempty"`
+	MachineID   string   `json:"machineId,omitempty"`
+	HostID      string   `json:"hostId,omitempty"`
+	Features    []string `json:"features,omitempty"`
 }
 
 type helloOK struct {
-	HostID string `json:"hostId,omitempty"`
+	HostID     string `json:"hostId,omitempty"`
+	MachineID  string `json:"machineId,omitempty"`
+	Credential string `json:"credential,omitempty"`
 }
 
 type errBody struct {
@@ -374,6 +416,16 @@ type portOK struct {
 
 type dataBody struct {
 	ConnID string `json:"connId,omitempty"`
+	Token  string `json:"token,omitempty"`
+}
+
+func hasFeature(features []string, want string) bool {
+	for _, feature := range features {
+		if feature == want {
+			return true
+		}
+	}
+	return false
 }
 
 func decode(p json.RawMessage, v any) {

@@ -14,15 +14,42 @@
 
 relay 跑两个监听:**wire 端口**(控制 + data.attach,换行 JSON)和 **ingress 端口**(裸 TCP,应用面,如浏览器)。wire 端口上每条新连接先读一行,按 `t` 分派:`hello` → 控制会话,`data.attach` → 裸数据通道。ingress 端口不做任何 framing,纯裸字节。
 
-## L0 身份与配对(机器码)
+## L0 身份与配对
 
-`hello` 里带 `code`——一段短的人可输入的机器码,relay 用 `PIKTAK_CODES` 白名单校验。码同时充当 host 身份(未声明 hostId 时,hostId = code)。这就是"远程发现"那一半:client 用 hostId 点名要连哪个 host。
+### Go Relay
+
+Go Relay 使用一次性 `pairingCode` 注册 Machine。首次连接：
 
 ```
-→ {"t":"hello","p":{"role":"host"|"client","code":"12345678","hostId":"host-1"}}
-← {"t":"hello.ok","p":{"hostId":"..."}}
-← {"t":"hello.err","p":{"code":"UNAUTHORIZED|BAD_ROLE|HOST_NOT_FOUND"}}
+→ {"t":"hello","p":{"role":"host","protocol":"piktak-tcp","version":1,"pairingCode":"...","machineId":"","hostId":"dsh","features":["data-token"]}}
+← {"t":"hello.ok","p":{"hostId":"dsh","machineId":"machine-...","credential":"..."}}
 ```
+
+`piktakd` 将 credential 保存到本地文件；之后重连只发送 `credential` 和 `machineId`：
+
+```
+→ {"t":"hello","p":{"role":"host","protocol":"piktak-tcp","version":1,"credential":"...","machineId":"machine-...","hostId":"dsh","features":["data-token"]}}
+← {"t":"hello.ok","p":{"hostId":"dsh","machineId":"machine-..."}}
+```
+
+Pairing code 只使用一次。Relay 只保存 credential 的哈希，不记录明文。`hostId` 是 Service 路由名，不再由机器码推导。
+
+Go 配置示例：
+
+```yaml
+relay: 127.0.0.1:7681
+pairing_code: one-time-code
+machine_id: ""
+credential_file: ~/.config/piktak/go-credential
+services:
+  - name: dsh
+    protocol: tcp
+    local: 127.0.0.1:3080
+```
+
+### Cloudflare Worker
+
+Cloudflare Worker 使用自己的 `code` / `PIKTAK_CODES` 和 Access 流程，**不使用 Go Relay 的 pairingCode、credential 或 machineId**。两条路径相互独立。
 
 PSK 作为另一种 `Pairer` 实现保留;换 L0 策略不碰 L1。
 

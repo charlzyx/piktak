@@ -17,20 +17,24 @@ import (
 	"io"
 	"log"
 	"net"
+	"os"
 
 	"github.com/charlzyx/piktak/internal/status"
 	"github.com/charlzyx/piktak/internal/wire"
 )
 
-// Host is configured by the binary: where the relay's wire listener is, the
-// machine code (pairing secret + host identity), and the local address to
-// expose behind the relay ingress.
+// Host is configured by the binary: where the Go Relay's wire listener is,
+// either a one-time pairing code or persistent credential, and the local
+// address to expose behind the relay ingress.
 type Host struct {
-	Addr   string
-	Code   string
-	HostID string // optional; defaults to Code
-	Local  string // local addr to expose, e.g. 127.0.0.1:7531
-	Status *status.State
+	Addr           string
+	PairingCode    string // one-time Go Relay pairing code
+	Credential     string // persistent credential returned after pairing
+	MachineID      string // stable identity; assigned by the Relay when empty
+	CredentialFile string // optional path for the issued credential
+	HostID         string // optional protocol discovery label
+	Local          string // local addr to expose, e.g. 127.0.0.1:7531
+	Status         *status.State
 }
 
 // Run dials the relay, pairs, exposes the local port, and serves inbound
@@ -44,16 +48,26 @@ func (h *Host) Run(ctx context.Context) error {
 
 	hostID := h.HostID
 	if hostID == "" {
-		hostID = h.Code
+		hostID = h.MachineID
+	}
+	if h.Credential == "" && h.CredentialFile != "" {
+		if b, readErr := os.ReadFile(h.CredentialFile); readErr == nil {
+			h.Credential = string(b)
+		}
+	}
+	if h.Credential != "" {
+		// A persisted credential always wins over the one-time bootstrap code.
+		h.PairingCode = ""
+	}
+	if h.PairingCode == "" && h.Credential == "" {
+		return fmt.Errorf("thost: Go Relay pairingCode or credential is required")
 	}
 	if err := c.WriteFrame(ctx, wire.Envelope{
 		T: "hello",
 		Payload: wire.MustJSON(helloBody{
-			Role:     "host",
-			Protocol: wire.ProtocolTCP,
-			Version:  wire.Version,
-			Code:     h.Code,
-			HostID:   hostID,
+			Role: "host", Protocol: wire.ProtocolTCP, Version: wire.Version,
+			PairingCode: h.PairingCode, Credential: h.Credential,
+			MachineID: h.MachineID, HostID: hostID, Features: []string{"data-token"},
 		}),
 	}); err != nil {
 		return fmt.Errorf("thost: hello: %w", err)
@@ -63,7 +77,29 @@ func (h *Host) Run(ctx context.Context) error {
 		return fmt.Errorf("thost: hello read: %w", err)
 	}
 	if ok.T != "hello.ok" {
+		var rejected errBody
+		decode(ok.Payload, &rejected)
+		if rejected.Code != "" {
+			return fmt.Errorf("thost: hello rejected: %s", rejected.Code)
+		}
 		return fmt.Errorf("thost: hello rejected: %s", ok.T)
+	}
+	var hok helloOK
+	decode(ok.Payload, &hok)
+	if hok.MachineID != "" {
+		h.MachineID = hok.MachineID
+	}
+	if hok.HostID != "" {
+		hostID = hok.HostID
+	}
+	if hok.Credential != "" {
+		h.Credential = hok.Credential
+		h.PairingCode = ""
+		if h.CredentialFile != "" {
+			if err := os.WriteFile(h.CredentialFile, []byte(h.Credential), 0600); err != nil {
+				return fmt.Errorf("thost: save credential: %w", err)
+			}
+		}
 	}
 	log.Printf("thost online: id=%s local=%s", hostID, h.Local)
 	if h.Status != nil {
@@ -101,13 +137,13 @@ func (h *Host) Run(ctx context.Context) error {
 		if db.ConnID == "" {
 			continue
 		}
-		go h.handleInbound(ctx, db.ConnID)
+		go h.handleInbound(ctx, db.ConnID, db.Token)
 	}
 }
 
 // handleInbound opens a raw data channel for one browser connection and
 // splices it to the local target. Each inbound gets its own data connection.
-func (h *Host) handleInbound(ctx context.Context, connID string) {
+func (h *Host) handleInbound(ctx context.Context, connID, token string) {
 	dc, err := wire.DialTCP(ctx, h.Addr)
 	if err != nil {
 		log.Printf("thost: data dial: %v", err)
@@ -116,7 +152,7 @@ func (h *Host) handleInbound(ctx context.Context, connID string) {
 	defer dc.Close()
 	if err := dc.WriteFrame(ctx, wire.Envelope{
 		T:       "data.attach",
-		Payload: wire.MustJSON(dataBody{ConnID: connID}),
+		Payload: wire.MustJSON(dataBody{ConnID: connID, Token: token}),
 	}); err != nil {
 		log.Printf("thost: data.attach: %v", err)
 		return
@@ -185,11 +221,24 @@ func closeWrite(c any) {
 // Control-frame bodies mirror the relay's private vocabulary; the wire contract
 // is the JSON shape, so thost does not import relay.
 type helloBody struct {
-	Role     string `json:"role,omitempty"`
-	Protocol string `json:"protocol,omitempty"`
-	Version  int    `json:"version,omitempty"`
-	Code     string `json:"code,omitempty"`
-	HostID   string `json:"hostId,omitempty"`
+	Role        string   `json:"role,omitempty"`
+	Protocol    string   `json:"protocol,omitempty"`
+	Version     int      `json:"version,omitempty"`
+	PairingCode string   `json:"pairingCode,omitempty"`
+	Credential  string   `json:"credential,omitempty"`
+	MachineID   string   `json:"machineId,omitempty"`
+	HostID      string   `json:"hostId,omitempty"`
+	Features    []string `json:"features,omitempty"`
+}
+
+type helloOK struct {
+	HostID     string `json:"hostId,omitempty"`
+	MachineID  string `json:"machineId,omitempty"`
+	Credential string `json:"credential,omitempty"`
+}
+
+type errBody struct {
+	Code string `json:"code,omitempty"`
 }
 
 type portBody struct {
@@ -202,6 +251,7 @@ type portOK struct {
 
 type dataBody struct {
 	ConnID string `json:"connId,omitempty"`
+	Token  string `json:"token,omitempty"`
 }
 
 func decode(p json.RawMessage, v any) {

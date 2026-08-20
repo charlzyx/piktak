@@ -26,7 +26,11 @@ import (
 func main() {
 	configPath := flag.String("config", env("PIKTAK_CONFIG", ""), "YAML config file (multi-service; see README). Default: flags/env, single service")
 	relay := flag.String("relay", env("PIKTAK_RELAY", "127.0.0.1:7681"), "relay address (single-service mode)")
-	code := flag.String("code", env("PIKTAK_CODE", ""), "machine code (L0 pairing secret; required)")
+	code := flag.String("code", env("PIKTAK_CODE", ""), "Cloudflare/WS pairing code")
+	pairingCode := flag.String("pair-code", env("PIKTAK_PAIR_CODE", ""), "one-time Go Relay pairing code")
+	credential := flag.String("credential", env("PIKTAK_CREDENTIAL", ""), "Go Relay credential")
+	machineID := flag.String("machine-id", env("PIKTAK_MACHINE_ID", ""), "stable Go Relay machine ID")
+	credentialFile := flag.String("credential-file", env("PIKTAK_CREDENTIAL_FILE", ""), "Go Relay credential file")
 	local := flag.String("local", env("PIKTAK_LOCAL", "127.0.0.1:7531"), "local address to expose")
 	name := flag.String("name", env("PIKTAK_NAME", ""), "routing key (single-service mode; the relay routes this host's WS to its DO, e.g. the browser subdomain)")
 	rewriteHost := flag.Bool("rewrite-host", env("PIKTAK_REWRITE_HOST", "0") == "1", "loopback compat: rewrite Host to local + strip browser origin markers (for backends that trust loopback/same-origin, e.g. dsh)")
@@ -51,18 +55,19 @@ func main() {
 		services = cfg.expand()
 	} else {
 		services = []ServiceConfig{{
-			Name:        *name,
-			Protocol:    guessProtocol(*relay),
-			Relay:       *relay,
-			Code:        *code,
-			Local:       *local,
-			RewriteHost: *rewriteHost,
+			Name: *name, Protocol: guessProtocol(*relay), Relay: *relay,
+			Code: *code, PairingCode: *pairingCode, Credential: *credential,
+			MachineID: *machineID, CredentialFile: *credentialFile,
+			Local: *local, RewriteHost: *rewriteHost,
 		}}
 	}
 
 	for _, s := range services {
-		if s.Code == "" {
-			log.Fatalf("piktakd[%s]: machine code is required (set code in config, -code, or PIKTAK_CODE)", serviceLabel(s))
+		if s.Protocol == "ws" && s.Code == "" {
+			log.Fatalf("piktakd[%s]: code is required for ws relay", serviceLabel(s))
+		}
+		if s.Protocol == "tcp" && s.PairingCode == "" && s.Credential == "" && s.CredentialFile == "" {
+			log.Fatalf("piktakd[%s]: pair-code, credential, or credential-file is required for Go Relay", serviceLabel(s))
 		}
 	}
 
@@ -118,9 +123,7 @@ func main() {
 		wg.Add(1)
 		go func(s ServiceConfig) {
 			defer wg.Done()
-			if err := runService(ctx, s); err != nil && ctx.Err() == nil {
-				log.Printf("piktakd[%s]: %v", serviceLabel(s), err)
-			}
+			runServiceLoop(ctx, s)
 		}(s)
 	}
 	wg.Wait()
@@ -131,7 +134,11 @@ func printServiceHelp(args []string) {
 	fs.SetOutput(os.Stdout)
 	configPath := fs.String("config", env("PIKTAK_CONFIG", ""), "YAML config file")
 	relay := fs.String("relay", env("PIKTAK_RELAY", "127.0.0.1:7681"), "relay address")
-	code := fs.String("code", env("PIKTAK_CODE", ""), "machine code")
+	code := fs.String("code", env("PIKTAK_CODE", ""), "Cloudflare/WS pairing code")
+	pairingCode := fs.String("pair-code", env("PIKTAK_PAIR_CODE", ""), "one-time Go Relay pairing code")
+	credential := fs.String("credential", env("PIKTAK_CREDENTIAL", ""), "Go Relay credential")
+	machineID := fs.String("machine-id", env("PIKTAK_MACHINE_ID", ""), "stable Go Relay machine ID")
+	credentialFile := fs.String("credential-file", env("PIKTAK_CREDENTIAL_FILE", ""), "Go Relay credential file")
 	local := fs.String("local", env("PIKTAK_LOCAL", "127.0.0.1:7531"), "local address")
 	name := fs.String("name", env("PIKTAK_NAME", ""), "service name")
 	if err := fs.Parse(args); err != nil {
@@ -147,7 +154,7 @@ func printServiceHelp(args []string) {
 		}
 		services = cfg.expand()
 	} else {
-		services = append(services, ServiceConfig{Name: *name, Protocol: guessProtocol(*relay), Relay: *relay, Code: *code, Local: *local})
+		services = append(services, ServiceConfig{Name: *name, Protocol: guessProtocol(*relay), Relay: *relay, Code: *code, PairingCode: *pairingCode, Credential: *credential, MachineID: *machineID, CredentialFile: *credentialFile, Local: *local})
 	}
 
 	fmt.Println("piktakd")
@@ -190,12 +197,37 @@ func serviceLabel(s ServiceConfig) string {
 	return s.Relay
 }
 
+func runServiceLoop(ctx context.Context, s ServiceConfig) {
+	backoff := time.Second
+	for ctx.Err() == nil {
+		if err := runService(ctx, s); err != nil && ctx.Err() == nil {
+			log.Printf("piktakd[%s]: %v; retrying in %s", serviceLabel(s), err, backoff)
+		}
+		if ctx.Err() != nil {
+			return
+		}
+		timer := time.NewTimer(backoff)
+		select {
+		case <-ctx.Done():
+			timer.Stop()
+			return
+		case <-timer.C:
+		}
+		if backoff < 30*time.Second {
+			backoff *= 2
+			if backoff > 30*time.Second {
+				backoff = 30 * time.Second
+			}
+		}
+	}
+}
+
 func runService(ctx context.Context, s ServiceConfig) error {
 	if s.Protocol == "ws" {
 		h := &wsbridge.Host{Relay: s.Relay, Code: s.Code, Local: s.Local, RewriteHost: s.RewriteHost, Name: s.Name, Status: s.Status}
 		return h.Run(ctx)
 	}
-	h := &bridge.Host{Addr: s.Relay, Code: s.Code, Local: s.Local, HostID: s.Name, Status: s.Status}
+	h := &bridge.Host{Addr: s.Relay, PairingCode: s.PairingCode, Credential: s.Credential, MachineID: s.MachineID, CredentialFile: s.CredentialFile, Local: s.Local, HostID: s.Name, Status: s.Status}
 	return h.Run(ctx)
 }
 

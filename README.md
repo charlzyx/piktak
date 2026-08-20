@@ -142,11 +142,34 @@ npx wrangler deploy
 
 ### Go Relay
 
-Go Relay 是自建和协议参考实现，适合透明 TCP：
+Go Relay 是自建和协议参考实现，适合透明 TCP。它使用与 Cloudflare Worker 独立的动态配对流程：一次性 `pairing_code` 换取长期 credential，credential 保存到 Machine 本地并用于后续重连。Cloudflare Worker 的 `code` / `PIKTAK_CODES` 不受影响。
+
+```yaml
+relay: 127.0.0.1:7681
+pairing_code: one-time-code  # only for the first start
+machine_id: ""
+credential_file: ~/.config/piktak/go-credential
+services:
+  - name: dsh
+    protocol: tcp
+    local: 127.0.0.1:3080
+```
+
+每个 Go Host 的 inbound data channel 还会使用一次性 token，避免一个已认证 Host 猜测另一个 Host 的连接编号。raw ingress 仍然是透明 TCP；请只在受控网络或专用 ingress 端口上开放。
+
+请求路径：
 
 ```text
 Client / ingress → piktak-relay → piktakd → local Service
 ```
+
+生成一次性配对码（Relay 已配置 `PIKTAK_STATE` 时）：
+
+```sh
+PIKTAK_STATE=/var/lib/piktak/state.json piktak-relay pair
+```
+
+把输出的 code 写入 Machine 配置的 `pairing_code`。首次连接成功后，`piktakd` 会保存 credential，之后会自动使用 credential 重连。
 
 三分钟本地测试：
 
@@ -158,7 +181,7 @@ make run-curl        # request through the Relay
 ```
 
 > [!CAUTION]
-> Go Relay 的 raw ingress 当前没有逐连接认证。不要直接开放到公网；必须使用防火墙、私网或 IP 白名单限制来源。
+> Go Relay 的 raw ingress 是透明 TCP，不能读取应用字节做认证。不要直接开放到公网；必须使用防火墙、私网或专用 ingress 能力限制来源。
 
 ## 安装
 

@@ -16,25 +16,33 @@ import (
 // the JSONL-over-TCP relay protocol (the self-hosted box relay). Empty
 // protocol falls back to guessing from the relay scheme (ws/wss -> ws).
 type ServiceConfig struct {
-	Name        string        `yaml:"name"`         // routing key (piktak-cf: the browser subdomain)
-	Protocol    string        `yaml:"protocol"`     // "ws" | "tcp"; empty = guess from scheme
-	Relay       string        `yaml:"relay"`        // relay URL/address; scheme (ws/wss) is encryption only
-	Code        string        `yaml:"code"`         // machine code (L0 pairing secret)
-	Local       string        `yaml:"local"`        // local addr to expose
-	RewriteHost bool          `yaml:"rewrite_host"` // loopback compat (backends that trust loopback/same-origin)
-	Status      *status.State `yaml:"-"`
+	Name           string        `yaml:"name"`         // routing key (piktak-cf: the browser subdomain)
+	Protocol       string        `yaml:"protocol"`     // "ws" | "tcp"; empty = guess from scheme
+	Relay          string        `yaml:"relay"`        // relay URL/address; scheme (ws/wss) is encryption only
+	Code           string        `yaml:"code"`         // Cloudflare/WS pairing code
+	PairingCode    string        `yaml:"pairing_code"` // one-time Go Relay pairing code
+	Credential     string        `yaml:"credential"`   // Go Relay credential
+	MachineID      string        `yaml:"machine_id"`   // stable Go Relay identity
+	CredentialFile string        `yaml:"credential_file"`
+	Local          string        `yaml:"local"`        // local addr to expose
+	RewriteHost    bool          `yaml:"rewrite_host"` // loopback compat (backends that trust loopback/same-origin)
+	Status         *status.State `yaml:"-"`
 }
 
 // Config is the file schema: optional top-level defaults + a services list.
 // With no services, the top-level fields act as a single-service config.
 type Config struct {
-	Relay       string          `yaml:"relay"`
-	Code        string          `yaml:"code"`
-	Local       string          `yaml:"local"`
-	RewriteHost bool            `yaml:"rewrite_host"`
-	Status      bool            `yaml:"status"`
-	StatusAddr  string          `yaml:"status_addr"`
-	Services    []ServiceConfig `yaml:"services"`
+	Relay          string          `yaml:"relay"`
+	Code           string          `yaml:"code"`
+	PairingCode    string          `yaml:"pairing_code"`
+	Credential     string          `yaml:"credential"`
+	MachineID      string          `yaml:"machine_id"`
+	CredentialFile string          `yaml:"credential_file"`
+	Local          string          `yaml:"local"`
+	RewriteHost    bool            `yaml:"rewrite_host"`
+	Status         bool            `yaml:"status"`
+	StatusAddr     string          `yaml:"status_addr"`
+	Services       []ServiceConfig `yaml:"services"`
 }
 
 func loadConfig(path string) (*Config, error) {
@@ -54,11 +62,15 @@ func loadConfig(path string) (*Config, error) {
 func (c *Config) expand() []ServiceConfig {
 	if len(c.Services) == 0 {
 		return []ServiceConfig{{
-			Protocol:    guessProtocol(c.Relay),
-			Relay:       c.Relay,
-			Code:        c.Code,
-			Local:       c.Local,
-			RewriteHost: c.RewriteHost,
+			Protocol:       guessProtocol(c.Relay),
+			Relay:          c.Relay,
+			Code:           c.Code,
+			PairingCode:    c.PairingCode,
+			Credential:     c.Credential,
+			MachineID:      c.MachineID,
+			CredentialFile: c.CredentialFile,
+			Local:          c.Local,
+			RewriteHost:    c.RewriteHost,
 		}}
 	}
 	out := make([]ServiceConfig, 0, len(c.Services))
@@ -68,6 +80,18 @@ func (c *Config) expand() []ServiceConfig {
 		}
 		if s.Code == "" {
 			s.Code = c.Code
+		}
+		if s.PairingCode == "" {
+			s.PairingCode = c.PairingCode
+		}
+		if s.Credential == "" {
+			s.Credential = c.Credential
+		}
+		if s.MachineID == "" {
+			s.MachineID = c.MachineID
+		}
+		if s.CredentialFile == "" {
+			s.CredentialFile = c.CredentialFile
 		}
 		if s.Local == "" {
 			s.Local = c.Local
