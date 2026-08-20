@@ -11,67 +11,25 @@
 </head>
 <body>
   <div class="shell">
-    <header>
-      <a class="wordmark" href="#top">PIK.TAK</a>
-      <nav>
-        <button class="language" type="button" data-language-toggle aria-label="切换到中文">中文</button>
-        <a href="https://github.com/charlzyx/piktak">GitHub</a>
-        <a class="header-link locale-en" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">Get started →</a>
-        <a class="header-link locale-zh" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">开始使用 →</a>
-      </nav>
-    </header>
+    <header><a class="wordmark" href="#top">PIK.TAK</a><nav><button class="language" type="button" data-language-toggle aria-label="切换到中文">中文</button><a href="https://github.com/charlzyx/piktak">GitHub</a><a class="header-link locale-en" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">Get started →</a><a class="header-link locale-zh" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">开始使用 →</a></nav></header>
 
     <main id="top" class="locale-en">
-      <section class="hero">
-        <p class="brand-line">Pik. Tak. Paired.</p>
-        <h1>Your local services,<br>within reach.</h1>
-        <p class="lead">PIK.TAK pairs phones and browsers with selected services on your machine. The Machine connects outbound through a Relay you deploy.</p>
-        <div class="actions"><a class="primary" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">Deploy with Cloudflare</a><a href="https://github.com/charlzyx/piktak">View on GitHub →</a></div>
-      </section>
-
-      <section class="product" aria-label="PIK.TAK connection path">
-        <div class="window-bar"><span><i></i><i></i><i></i></span><b>PIK.TAK</b><em>CONNECTED</em></div>
-        <div class="product-body">
-          <div class="machine"><span>THIS MACHINE</span><h2>MacBook Pro</h2><p>DSH and 1 more service available</p></div>
-          <div class="route"><article><small>CLIENT</small><strong>Phone</strong><span>browser</span></article><i>→</i><article><small>RELAY</small><strong>Cloudflare</strong><span>Access + Worker</span></article><i>→</i><article class="active"><small>MACHINE</small><strong>piktakd</strong><span>outbound</span></article><i>→</i><article><small>SERVICE</small><strong>DSH</strong><span>127.0.0.1:3080</span></article></div>
-        </div>
-      </section>
-
-      <section class="facts">
-        <article><p class="eyebrow">MACHINE</p><h2>One daemon.</h2><p><code>piktakd</code> connects one or more local HTTP, WebSocket, or TCP services.</p></article>
-        <article><p class="eyebrow">RELAY</p><h2>Yours to run.</h2><p>Deploy the Cloudflare Worker or host the Go Relay yourself.</p></article>
-        <article><p class="eyebrow">ACCESS</p><h2>Required.</h2><p>Protect every public browser service with Cloudflare Access.</p></article>
-      </section>
-
-      <section class="origin"><p>PIK.TAK first connected DSH and PiAgent. It is designed for any selected local service.</p><a href="https://github.com/charlzyx/piktak">Read the project →</a></section>
+      <section class="hero"><p class="brand-line">Pik. Tak. Paired.</p><h1>Your local services,<br>within reach.</h1><p class="lead">PIK.TAK pairs phones and browsers with selected services on your machine. The Machine connects outbound through a Relay you deploy.</p><div class="actions"><a class="primary" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">Deploy with Cloudflare</a><a href="https://github.com/charlzyx/piktak">View on GitHub →</a></div></section>
+      <section class="product" aria-label="PIK.TAK connection path"><div class="window-bar"><span><i></i><i></i><i></i></span><b>PIK.TAK / THIS MACHINE</b><em>● CONNECTED</em></div><div class="product-body"><div class="machine"><span>THIS MACHINE</span><h2>MacBook Pro</h2><p>2 services · 24 requests today</p></div><div class="service-list"><article class="service active"><div><small>SERVICE</small><strong>DSH</strong><span>127.0.0.1:3080 · WebSocket</span></div><b>Connected</b></article><article class="service"><div><small>SERVICE</small><strong>dashboard</strong><span>127.0.0.1:8080 · HTTP</span></div><b>Ready</b></article></div><div class="route"><article><small>CLIENT</small><strong>Phone</strong><span>browser</span></article><i>→</i><article><small>RELAY</small><strong>Cloudflare</strong><span>Access + Worker</span></article><i>→</i><article class="active"><small>MACHINE</small><strong>piktakd</strong><span>outbound</span></article></div><div class="activity"><span>12:08:41&nbsp;&nbsp; paired</span><span>12:08:43&nbsp;&nbsp; forward&nbsp;&nbsp; GET /api/status</span><span>12:08:43&nbsp;&nbsp; response&nbsp;&nbsp; 18 ms</span></div></div></section>
+      <section class="capabilities"><article><p class="eyebrow">MACHINE</p><h2>One daemon.<br>Many services.</h2><p><code>piktakd</code> bridges one or more local HTTP, WebSocket, or TCP services. No changes to the application.</p></article><article><p class="eyebrow">RELAY</p><h2>Run it<br>your way.</h2><p>Deploy the Cloudflare Worker for browser access, or host the Go Relay for transparent TCP.</p></article></section>
+      <section class="access"><div><p class="eyebrow">PUBLIC ACCESS</p><h2>Access is not optional.</h2></div><p>Every public browser service needs Cloudflare Access. The machine code attaches a Host; it does not authenticate browser users.</p><a href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">Read the deployment guide →</a></section>
+      <section class="origin"><p>First used with DSH and PiAgent. Built for any local service you choose.</p><a href="https://github.com/charlzyx/piktak">Read the project →</a></section>
     </main>
 
     <main id="top-zh" class="locale-zh">
-      <section class="hero">
-        <p class="brand-line">Pik. Tak. Paired.</p>
-        <h1>本地服务，<br class="mobile-break">随处可用。</h1>
-        <p class="lead">PIK.TAK 把手机和浏览器接到你选中的本地服务。Machine 主动连出，Relay 由你部署。</p>
-        <div class="actions"><a class="primary" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">部署到 Cloudflare</a><a href="https://github.com/charlzyx/piktak">查看 GitHub →</a></div>
-      </section>
-
-      <section class="product" aria-label="PIK.TAK 连接路径">
-        <div class="window-bar"><span><i></i><i></i><i></i></span><b>PIK.TAK</b><em>已连接</em></div>
-        <div class="product-body">
-          <div class="machine"><span>本机</span><h2>MacBook Pro</h2><p>DSH 和另一个服务可用</p></div>
-          <div class="route"><article><small>CLIENT</small><strong>手机</strong><span>浏览器</span></article><i>→</i><article><small>RELAY</small><strong>Cloudflare</strong><span>Access + Worker</span></article><i>→</i><article class="active"><small>MACHINE</small><strong>piktakd</strong><span>主动连出</span></article><i>→</i><article><small>SERVICE</small><strong>DSH</strong><span>127.0.0.1:3080</span></article></div>
-        </div>
-      </section>
-
-      <section class="facts">
-        <article><p class="eyebrow">MACHINE</p><h2>一个 piktakd。</h2><p>接入一个或多个本地 HTTP、WebSocket 或 TCP 服务。</p></article>
-        <article><p class="eyebrow">RELAY</p><h2>部署在你手里。</h2><p>可以用 Cloudflare Worker，也可以自己运行 Go Relay。</p></article>
-        <article><p class="eyebrow">ACCESS</p><h2>必须配置。</h2><p>每个公开的浏览器入口都必须使用 Cloudflare Access。</p></article>
-      </section>
-
-      <section class="origin"><p>PIK.TAK 最初用于连接 DSH 和 PiAgent，也可以接入其他本地服务。</p><a href="https://github.com/charlzyx/piktak">了解这个项目 →</a></section>
+      <section class="hero"><p class="brand-line">Pik. Tak. Paired.</p><h1>本地服务，<br class="mobile-break">随处可用。</h1><p class="lead">PIK.TAK 把手机和浏览器接到你选中的本地服务。Machine 主动连出，Relay 由你部署。</p><div class="actions"><a class="primary" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">部署到 Cloudflare</a><a href="https://github.com/charlzyx/piktak">查看 GitHub →</a></div></section>
+      <section class="product" aria-label="PIK.TAK 连接路径"><div class="window-bar"><span><i></i><i></i><i></i></span><b>PIK.TAK / 本机</b><em>● 已连接</em></div><div class="product-body"><div class="machine"><span>本机</span><h2>MacBook Pro</h2><p>2 个服务 · 今日 24 次请求</p></div><div class="service-list"><article class="service active"><div><small>SERVICE</small><strong>DSH</strong><span>127.0.0.1:3080 · WebSocket</span></div><b>已连接</b></article><article class="service"><div><small>SERVICE</small><strong>dashboard</strong><span>127.0.0.1:8080 · HTTP</span></div><b>就绪</b></article></div><div class="route"><article><small>CLIENT</small><strong>手机</strong><span>浏览器</span></article><i>→</i><article><small>RELAY</small><strong>Cloudflare</strong><span>Access + Worker</span></article><i>→</i><article class="active"><small>MACHINE</small><strong>piktakd</strong><span>主动连出</span></article></div><div class="activity"><span>12:08:41&nbsp;&nbsp; 已配对</span><span>12:08:43&nbsp;&nbsp; 转发&nbsp;&nbsp; GET /api/status</span><span>12:08:43&nbsp;&nbsp; 响应&nbsp;&nbsp; 18 ms</span></div></div></section>
+      <section class="capabilities"><article><p class="eyebrow">MACHINE</p><h2>一个进程。<br>多个服务。</h2><p><code>piktakd</code> 可以接入一个或多个本地 HTTP、WebSocket 或 TCP 服务，原来的应用不需要修改。</p></article><article><p class="eyebrow">RELAY</p><h2>按你的方式<br>部署。</h2><p>浏览器访问使用 Cloudflare Worker；需要透明 TCP 时，可以自己运行 Go Relay。</p></article></section>
+      <section class="access"><div><p class="eyebrow">公开访问</p><h2>Access 不是可选项。</h2></div><p>每个公开的浏览器入口都必须配置 Cloudflare Access。机器码只用于 Host 接入，不能认证浏览器用户。</p><a href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">阅读部署说明 →</a></section>
+      <section class="origin"><p>最初用于连接 DSH 和 PiAgent，也适合你选中的其他本地服务。</p><a href="https://github.com/charlzyx/piktak">了解这个项目 →</a></section>
     </main>
 
-    <footer><b>PIK.TAK</b><span class="locale-en">Client → Relay → Machine → Service</span><span class="locale-zh">Client → Relay → Machine → Service</span></footer>
+    <footer><b>PIK.TAK</b><span>Client → Relay → Machine → Service</span></footer>
   </div>
   <script src="./script.js"></script>
 </body>
