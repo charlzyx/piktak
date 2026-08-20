@@ -132,6 +132,17 @@ openssl rand -hex 16 | npx wrangler secret put PIKTAK_CODES
 npx wrangler deploy
 ```
 
+### Two Relay paths
+
+PIK.TAK has two independent Relay paths:
+
+| Path | Use it for | Authentication and entry |
+| --- | --- | --- |
+| Cloudflare Worker | Browsers, HTTP, and WebSocket | Worker secret + Cloudflare Access |
+| Go Relay | A self-hosted server and transparent TCP | One-time pairing code + persistent credential |
+
+Cloudflare `ws` configuration and Go `tcp` configuration are not interchangeable. The Go Relay section below applies only to the Go path and does not change the Cloudflare Worker.
+
 ### Go Relay
 
 The Go backend is the self-hosted protocol reference implementation for transparent TCP. It uses a dynamic pairing flow independent from the Cloudflare Worker: a one-time `pairing_code` mints a persistent credential saved on the Machine. Cloudflare `code` / `PIKTAK_CODES` is unchanged.

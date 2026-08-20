@@ -140,6 +140,17 @@ openssl rand -hex 16 | npx wrangler secret put PIKTAK_CODES
 npx wrangler deploy
 ```
 
+### 两条 Relay 路径
+
+PIK.TAK 现在有两条彼此独立的 Relay 路径：
+
+| 路径 | 适合场景 | 认证与入口 |
+| --- | --- | --- |
+| Cloudflare Worker | 浏览器、HTTP、WebSocket | Worker secret + Cloudflare Access |
+| Go Relay | 自建服务器、透明 TCP | 一次性配对码 + 持久 credential |
+
+Cloudflare Worker 的 `ws` 配置和 Go Relay 的 `tcp` 配置不能混用。下面的 Go Relay 说明只适用于 Go 路径，不会改变 Cloudflare Worker。
+
 ### Go Relay
 
 Go Relay 是自建和协议参考实现，适合透明 TCP。它使用与 Cloudflare Worker 独立的动态配对流程：一次性 `pairing_code` 换取长期 credential，credential 保存到 Machine 本地并用于后续重连。Cloudflare Worker 的 `code` / `PIKTAK_CODES` 不受影响。
