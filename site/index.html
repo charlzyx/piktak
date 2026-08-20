@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="PIK.TAK pairs remote clients with services running on your machine.">
   <meta property="og:title" content="PIK.TAK — Pik. Tak. Paired.">
-  <meta property="og:description" content="Use local services from your phone without keeping a VPN active.">
-  <title>PIK.TAK — Pair with localhost</title>
+  <meta property="og:description" content="Your local services, within reach.">
+  <title>PIK.TAK — Pair with local services</title>
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
@@ -16,86 +16,62 @@
       <nav>
         <button class="language" type="button" data-language-toggle aria-label="切换到中文">中文</button>
         <a href="https://github.com/charlzyx/piktak">GitHub</a>
-        <a class="button small locale-en" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">Get PIK.TAK</a>
-        <a class="button small locale-zh" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">开始使用</a>
+        <a class="header-link locale-en" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">Get started →</a>
+        <a class="header-link locale-zh" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">开始使用 →</a>
       </nav>
     </header>
 
     <main id="top" class="locale-en">
       <section class="hero">
         <p class="brand-line">Pik. Tak. Paired.</p>
-        <h1>Use local services from your phone.<br>Without keeping a VPN active.</h1>
-        <p class="lead">PIK.TAK pairs phones and browsers with selected services running on your machine.</p>
-        <div class="actions"><a class="button" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">Deploy with Cloudflare ↗</a><a href="https://github.com/charlzyx/piktak">View source</a></div>
+        <h1>Your local services,<br>within reach.</h1>
+        <p class="lead">PIK.TAK pairs phones and browsers with selected services on your machine. The Machine connects outbound through a Relay you deploy.</p>
+        <div class="actions"><a class="primary" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">Deploy with Cloudflare</a><a href="https://github.com/charlzyx/piktak">View on GitHub →</a></div>
       </section>
 
       <section class="product" aria-label="PIK.TAK connection path">
-        <div class="window-bar"><span><i></i><i></i><i></i></span><b>PIK.TAK / THIS MACHINE</b><em>CONNECTED</em></div>
+        <div class="window-bar"><span><i></i><i></i><i></i></span><b>PIK.TAK</b><em>CONNECTED</em></div>
         <div class="product-body">
           <div class="machine"><span>THIS MACHINE</span><h2>MacBook Pro</h2><p>DSH and 1 more service available</p></div>
-          <div class="route"><article><small>CLIENT</small><strong>Phone</strong><span>browser</span></article><i>→</i><article><small>ACCESS</small><strong>Cloudflare</strong><span>authenticated</span></article><i>→</i><article><small>RELAY</small><strong>Worker</strong><span>Durable Object</span></article><i>→</i><article class="active"><small>MACHINE</small><strong>piktakd</strong><span>outbound</span></article><i>→</i><article><small>SERVICE</small><strong>DSH</strong><span>127.0.0.1:3080</span></article></div>
-          <div class="events"><p><time>12:08:41</time><b>paired</b><span>machine connected</span></p><p><time>12:08:43</time><b>forward</b><span>POST /api/session.list</span></p><p><time>12:08:43</time><b>stream</b><span>response returned · 18 ms</span></p></div>
+          <div class="route"><article><small>CLIENT</small><strong>Phone</strong><span>browser</span></article><i>→</i><article><small>RELAY</small><strong>Cloudflare</strong><span>Access + Worker</span></article><i>→</i><article class="active"><small>MACHINE</small><strong>piktakd</strong><span>outbound</span></article><i>→</i><article><small>SERVICE</small><strong>DSH</strong><span>127.0.0.1:3080</span></article></div>
         </div>
       </section>
 
-      <section class="statement"><p class="kicker">WHY PIK.TAK</p><h2>One local service should not require a whole VPN.</h2><p>PIK.TAK started as a way to use DSH and PiAgent from a phone. It connects only the services you choose, through a Relay you control.</p></section>
-
-      <section class="split">
-        <article><p class="kicker">WORKS TODAY</p><h3>Bridge an existing local service.</h3><p>Run <code>piktakd</code> next to any HTTP, WebSocket, or TCP service. The application does not need to know PIK.TAK exists.</p></article>
-        <article><p class="kicker">BUILT TOWARD</p><h3>Pairing and transport for local applications.</h3><p>Native Hosts and Clients can later share identity, service discovery, capabilities, and tunnels.</p></article>
+      <section class="facts">
+        <article><p class="eyebrow">MACHINE</p><h2>One daemon.</h2><p><code>piktakd</code> connects one or more local HTTP, WebSocket, or TCP services.</p></article>
+        <article><p class="eyebrow">RELAY</p><h2>Yours to run.</h2><p>Deploy the Cloudflare Worker or host the Go Relay yourself.</p></article>
+        <article><p class="eyebrow">ACCESS</p><h2>Required.</h2><p>Protect every public browser service with Cloudflare Access.</p></article>
       </section>
 
-      <section class="first-use"><div><p class="kicker">FIRST APPLICATION</p><h2>First used with DSH.<br>Designed for more than DSH.</h2></div><p>Agent UIs · development dashboards · home services · internal tools</p></section>
-
-      <section class="relay-section"><div><p class="kicker">TWO RELAY BACKENDS</p><h2>One protocol.<br>Two ways to relay.</h2></div><div class="relay-grid"><article><span>01</span><h3>Cloudflare Worker</h3><p>No VPS. HTTPS, custom domains, and Durable Object routing.</p><strong>Cloudflare Access is required before connecting a real service.</strong></article><article><span>02</span><h3>Go Relay</h3><p>Self-hosted, transparent TCP, and no Cloudflare dependency.</p></article></div></section>
-
-      <section class="status-section"><div><p class="kicker">LOCAL STATUS</p><h2>See every hop.</h2><p>A loopback-only page shows the Relay, connection state, local target, and request count. The JSON API never returns the pairing secret.</p></div><div class="status-card"><header><b>piktakd</b><span>● connected</span></header><h3>This Machine</h3><dl><div><dt>Relay</dt><dd>wss://relay.example.com/host</dd></div><div><dt>Services</dt><dd>2 configured</dd></div><div><dt>Path</dt><dd>Client → Relay → Machine → Service</dd></div></dl></div></section>
-
-      <section class="fits"><p class="kicker">WHERE IT FITS</p><div><p>Tailscale connects networks.</p><p>ngrok hosts tunnels.</p><p>frp forwards ports.</p><p><b>PIK.TAK pairs Clients with local Services.</b></p></div></section>
-
-      <section class="cta"><p class="kicker">PIK. TAK. PAIRED.</p><h2>Pair your first local service.</h2><div class="actions"><a class="button" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">Deploy with Cloudflare ↗</a><a href="https://github.com/charlzyx/piktak#go-relay">Explore the Go Relay</a></div></section>
-
-      <section class="faq"><p class="kicker">QUESTIONS</p><details><summary>Is PIK.TAK a VPN?</summary><p>No. It connects selected services instead of joining entire devices or networks.</p></details><details><summary>Is it only for Agents?</summary><p>No. DSH and PiAgent inspired it, but any suitable HTTP, WebSocket, or TCP service can connect.</p></details><details><summary>Why not cloudflared?</summary><p>cloudflared is the mature choice for putting a service behind Cloudflare. PIK.TAK is developing a Relay-independent pairing and transport protocol, with Cloudflare as one backend.</p></details><details><summary>Does PIK.TAK run a public cloud?</summary><p>No. Deploy the Worker in your Cloudflare account or run the Go Relay yourself.</p></details></section>
+      <section class="origin"><p>PIK.TAK first connected DSH and PiAgent. It is designed for any selected local service.</p><a href="https://github.com/charlzyx/piktak">Read the project →</a></section>
     </main>
 
     <main id="top-zh" class="locale-zh">
       <section class="hero">
         <p class="brand-line">Pik. Tak. Paired.</p>
-        <h1>从手机使用本地服务。<br>不必一直开着 VPN。</h1>
-        <p class="lead">PIK.TAK 把手机和浏览器接到电脑上的指定服务。</p>
-        <div class="actions"><a class="button" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">部署到 Cloudflare ↗</a><a href="https://github.com/charlzyx/piktak">查看源码</a></div>
+        <h1>本地服务，<br class="mobile-break">随处可用。</h1>
+        <p class="lead">PIK.TAK 把手机和浏览器接到你选中的本地服务。Machine 主动连出，Relay 由你部署。</p>
+        <div class="actions"><a class="primary" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">部署到 Cloudflare</a><a href="https://github.com/charlzyx/piktak">查看 GitHub →</a></div>
       </section>
 
       <section class="product" aria-label="PIK.TAK 连接路径">
-        <div class="window-bar"><span><i></i><i></i><i></i></span><b>PIK.TAK / 本机</b><em>已连接</em></div>
+        <div class="window-bar"><span><i></i><i></i><i></i></span><b>PIK.TAK</b><em>已连接</em></div>
         <div class="product-body">
           <div class="machine"><span>本机</span><h2>MacBook Pro</h2><p>DSH 和另一个服务可用</p></div>
-          <div class="route"><article><small>访问端</small><strong>手机</strong><span>浏览器</span></article><i>→</i><article><small>登录</small><strong>Cloudflare</strong><span>身份已确认</span></article><i>→</i><article><small>中继</small><strong>Worker</strong><span>Durable Object</span></article><i>→</i><article class="active"><small>本机</small><strong>piktakd</strong><span>主动连出</span></article><i>→</i><article><small>服务</small><strong>DSH</strong><span>127.0.0.1:3080</span></article></div>
-          <div class="events"><p><time>12:08:41</time><b>配对</b><span>本机已连接</span></p><p><time>12:08:43</time><b>转发</b><span>POST /api/session.list</span></p><p><time>12:08:43</time><b>响应</b><span>已返回 · 18 ms</span></p></div>
+          <div class="route"><article><small>CLIENT</small><strong>手机</strong><span>浏览器</span></article><i>→</i><article><small>RELAY</small><strong>Cloudflare</strong><span>Access + Worker</span></article><i>→</i><article class="active"><small>MACHINE</small><strong>piktakd</strong><span>主动连出</span></article><i>→</i><article><small>SERVICE</small><strong>DSH</strong><span>127.0.0.1:3080</span></article></div>
         </div>
       </section>
 
-      <section class="statement"><p class="kicker">为什么做 PIK.TAK</p><h2>访问一个本地服务，不必开着整个 VPN。</h2><p>PIK.TAK 最初是为了从手机使用 DSH 和 PiAgent。它只连接你选中的服务，并由你自己部署中继。</p></section>
-
-      <section class="split">
-        <article><p class="kicker">现在就能用</p><h3>把现有本地服务接进来。</h3><p>在 HTTP、WebSocket 或 TCP 服务旁运行 <code>piktakd</code>，原来的应用不需要修改。</p></article>
-        <article><p class="kicker">接下来要做</p><h3>给本地应用共用的配对和传输层。</h3><p>原生接入后，Host 和访问端可以共用身份、服务发现、能力协商和数据通道。</p></article>
+      <section class="facts">
+        <article><p class="eyebrow">MACHINE</p><h2>一个 piktakd。</h2><p>接入一个或多个本地 HTTP、WebSocket 或 TCP 服务。</p></article>
+        <article><p class="eyebrow">RELAY</p><h2>部署在你手里。</h2><p>可以用 Cloudflare Worker，也可以自己运行 Go Relay。</p></article>
+        <article><p class="eyebrow">ACCESS</p><h2>必须配置。</h2><p>每个公开的浏览器入口都必须使用 Cloudflare Access。</p></article>
       </section>
 
-      <section class="first-use"><div><p class="kicker">第一个实际应用</p><h2>先用在 DSH。<br>但不只服务 DSH。</h2></div><p>Agent 页面 · 开发面板 · 家庭服务 · 内部工具</p></section>
-
-      <section class="relay-section"><div><p class="kicker">两种中继</p><h2>同一套协议。<br>两种部署方式。</h2></div><div class="relay-grid"><article><span>01</span><h3>Cloudflare Worker</h3><p>不需要 VPS，支持 HTTPS、自定义域名和 Durable Object。</p><strong>连接真实服务前，必须配置 Cloudflare Access。</strong></article><article><span>02</span><h3>Go 中继</h3><p>完全自建，支持透明 TCP，不依赖 Cloudflare。</p></article></div></section>
-
-      <section class="status-section"><div><p class="kicker">本机状态</p><h2>每一跳都看得见。</h2><p>只监听本机的状态页会显示中继、连接状态、本地目标和请求数。JSON API 不会返回机器码。</p></div><div class="status-card"><header><b>piktakd</b><span>● 已连接</span></header><h3>本机</h3><dl><div><dt>中继</dt><dd>wss://relay.example.com/host</dd></div><div><dt>服务</dt><dd>已配置 2 个</dd></div><div><dt>路径</dt><dd>访问端 → 中继 → 本机 → 服务</dd></div></dl></div></section>
-
-      <section class="fits"><p class="kicker">PIK.TAK 在哪一层</p><div><p>Tailscale 连接网络。</p><p>ngrok 托管 Tunnel。</p><p>frp 转发端口。</p><p><b>PIK.TAK 把远程访问端与指定的本地服务配对。</b></p></div></section>
-
-      <section class="cta"><p class="kicker">PIK. TAK. PAIRED.</p><h2>连接你的第一个本地服务。</h2><div class="actions"><a class="button" href="https://github.com/charlzyx/piktak/blob/main/piktak-cf/README.md">部署到 Cloudflare ↗</a><a href="https://github.com/charlzyx/piktak#go-relay">查看 Go 中继</a></div></section>
-
-      <section class="faq"><p class="kicker">常见问题</p><details><summary>PIK.TAK 是 VPN 吗？</summary><p>不是。它只连接选中的服务，不会把整台设备或整个网络接进来。</p></details><details><summary>只能用于 Agent 吗？</summary><p>不是。DSH 和 PiAgent 是起点，合适的 HTTP、WebSocket 或 TCP 服务都可以接入。</p></details><details><summary>为什么不用 cloudflared？</summary><p>如果只需要把一个服务接入 Cloudflare，cloudflared 更成熟。PIK.TAK 想做的是不绑定中继的配对和传输协议，Cloudflare 只是其中一种后端。</p></details><details><summary>PIK.TAK 提供公共云吗？</summary><p>不提供。你需要把 Worker 部署在自己的 Cloudflare 账号中，或者自己运行 Go 中继。</p></details></section>
+      <section class="origin"><p>PIK.TAK 最初用于连接 DSH 和 PiAgent，也可以接入其他本地服务。</p><a href="https://github.com/charlzyx/piktak">了解这个项目 →</a></section>
     </main>
 
-    <footer><b>PIK.TAK</b><span class="locale-en">Pair remote clients with local services.</span><span class="locale-zh">把远程访问接到本地服务。</span></footer>
+    <footer><b>PIK.TAK</b><span class="locale-en">Client → Relay → Machine → Service</span><span class="locale-zh">Client → Relay → Machine → Service</span></footer>
   </div>
   <script src="./script.js"></script>
 </body>
