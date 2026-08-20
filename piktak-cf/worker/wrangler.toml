@@ -9,7 +9,7 @@ compatibility_date = "2024-09-23"
 # browser requests are protected by Access.
 [vars]
 # Set to "1" after Cloudflare Access protects every browser hostname.
-PIKTAK_REQUIRE_ACCESS = "0"
+PIKTAK_REQUIRE_ACCESS = "1"
 
 # Store PIKTAK_CODES as a secret, never in this file:
 #   openssl rand -hex 16 | npx wrangler secret put PIKTAK_CODES

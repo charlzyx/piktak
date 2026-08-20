@@ -1,6 +1,6 @@
 # PIK.TAK
 
-**Pik. Tak. Paired.**
+## Pik. Tak. Paired.
 
 PIK.TAK 把手机、浏览器和远程客户端接到电脑上运行的服务。
 

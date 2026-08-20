@@ -1,6 +1,6 @@
 # PIK.TAK
 
-**Pik. Tak. Paired.**
+## Pik. Tak. Paired.
 
 PIK.TAK connects phones, browsers, and remote clients to services running on your machine.
 
