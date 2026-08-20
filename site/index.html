@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="PIK.TAK pairs remote clients with services running on your machine.">
+  <meta property="og:title" content="PIK.TAK — Pik. Tak. Paired.">
+  <meta property="og:description" content="Use what runs on localhost from the devices you carry.">
+  <title>PIK.TAK — Pair with localhost</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <a class="wordmark" href="#top">PIK.TAK</a>
+      <nav><a href="https://github.com/charlzyx/piktak">GitHub</a><a class="button small" href="https://github.com/charlzyx/piktak#cloudflare-quick-start">Get PIK.TAK</a></nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <p class="kicker">PAIR REMOTE CLIENTS WITH LOCAL SERVICES</p>
+        <h1>Use what runs on localhost<br>from the devices you carry.</h1>
+        <p class="lead">PIK.TAK connects phones and browsers to selected services on your machine, without putting the whole device on a VPN.</p>
+        <div class="actions"><a class="button" href="https://github.com/charlzyx/piktak#cloudflare-quick-start">Get PIK.TAK <span>↗</span></a><a href="https://github.com/charlzyx/piktak">View source</a></div>
+        <p class="tagline">PIK. TAK. PAIRED.</p>
+      </section>
+
+      <section class="product" aria-label="PIK.TAK connection path">
+        <div class="window-bar"><span><i></i><i></i><i></i></span><b>PIK.TAK / THIS MACHINE</b><em>CONNECTED</em></div>
+        <div class="product-body">
+          <div class="machine"><span>THIS MACHINE</span><h2>MacBook Pro</h2><p>2 local services available</p></div>
+          <div class="route">
+            <article><small>CLIENT</small><strong>Phone</strong><span>browser</span></article><i>→</i>
+            <article><small>RELAY</small><strong>Cloudflare</strong><span>Worker + DO</span></article><i>→</i>
+            <article class="active"><small>MACHINE</small><strong>piktakd</strong><span>outbound</span></article><i>→</i>
+            <article><small>SERVICE</small><strong>DSH</strong><span>127.0.0.1:3080</span></article>
+          </div>
+          <div class="events"><p><time>12:08:41</time><b>paired</b><span>machine code accepted</span></p><p><time>12:08:43</time><b>forward</b><span>GET /api/status</span></p><p><time>12:08:43</time><b>stream</b><span>response returned · 18 ms</span></p></div>
+        </div>
+      </section>
+
+      <section class="statement">
+        <p class="kicker">WHY PIK.TAK</p>
+        <h2>One local service should not require a whole VPN.</h2>
+        <p>PIK.TAK started as a way to use DSH and PiAgent from a phone. It now connects any selected HTTP, WebSocket, or TCP service through a Relay you control.</p>
+      </section>
+
+      <section class="columns">
+        <article><p class="kicker">SERVICE, NOT NETWORK</p><h3>Connect only what you need.</h3><p>The Machine dials out. Your phone opens a domain. No public IP, port forwarding, or phone app.</p></article>
+        <article><p class="kicker">YOUR RELAY</p><h3>Cloudflare or Go.</h3><p>Deploy the Worker in your own account, or run the Go Relay yourself. PIK.TAK does not operate a public tunnel cloud.</p></article>
+        <article><p class="kicker">BRIDGE TODAY</p><h3>Native tomorrow.</h3><p>Bridge existing services without code changes. Native applications can later use pairing, discovery, capabilities, and tunnels directly.</p></article>
+      </section>
+
+      <section class="relay-section">
+        <div><p class="kicker">TWO RELAY BACKENDS</p><h2>Choose the path that fits.</h2></div>
+        <div class="relay-grid"><article><span>01</span><h3>Cloudflare Worker</h3><p>No VPS. HTTPS, custom domains, Access, and Durable Object routing. Built for phones and browsers.</p></article><article><span>02</span><h3>Go Relay</h3><p>Self-hosted, transparent TCP, and no Cloudflare dependency. The protocol reference implementation.</p></article></div>
+      </section>
+
+      <section class="cta"><p class="kicker">PIK. TAK. PAIRED.</p><h2>Pair your first local service.</h2><div class="actions"><a class="button" href="https://github.com/charlzyx/piktak#cloudflare-quick-start">Read the setup <span>↗</span></a><a href="https://github.com/charlzyx/piktak/blob/main/docs/protocol.md">Explore the protocol</a></div></section>
+    </main>
+
+    <footer><b>PIK.TAK</b><span>Pair remote clients with local services.</span></footer>
+  </div>
+</body>
+</html>

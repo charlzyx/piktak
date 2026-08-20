@@ -1,0 +1,95 @@
+name: release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+          cache: true
+
+      - name: Build piktakd for Linux and macOS
+        run: make dist
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: bin/piktakd-*
+          generate_release_notes: true
+
+      - name: Generate Homebrew formula
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          version="${VERSION#v}"
+          darwin_arm64="$(sha256sum bin/piktakd-darwin-arm64 | cut -d' ' -f1)"
+          darwin_amd64="$(sha256sum bin/piktakd-darwin-amd64 | cut -d' ' -f1)"
+          linux_arm64="$(sha256sum bin/piktakd-linux-arm64 | cut -d' ' -f1)"
+          linux_amd64="$(sha256sum bin/piktakd-linux-amd64 | cut -d' ' -f1)"
+          mkdir -p /tmp/piktak-formula
+          cat > /tmp/piktak-formula/piktak.rb <<RUBY
+          class Piktak < Formula
+            desc "Connect remote clients to services running on your machine"
+            homepage "https://github.com/charlzyx/piktak"
+            version "${version}"
+            license :cannot_represent
+
+            on_macos do
+              if Hardware::CPU.arm?
+                url "https://github.com/charlzyx/piktak/releases/download/${VERSION}/piktakd-darwin-arm64"
+                sha256 "${darwin_arm64}"
+              else
+                url "https://github.com/charlzyx/piktak/releases/download/${VERSION}/piktakd-darwin-amd64"
+                sha256 "${darwin_amd64}"
+              end
+            end
+
+            on_linux do
+              if Hardware::CPU.arm?
+                url "https://github.com/charlzyx/piktak/releases/download/${VERSION}/piktakd-linux-arm64"
+                sha256 "${linux_arm64}"
+              else
+                url "https://github.com/charlzyx/piktak/releases/download/${VERSION}/piktakd-linux-amd64"
+                sha256 "${linux_amd64}"
+              end
+            end
+
+            def install
+              bin.install Dir["piktakd-*"].first => "piktakd"
+            end
+
+            service do
+              run [opt_bin/"piktakd", "-config", "#{Dir.home}/.config/piktak/config.yml"]
+              keep_alive true
+            end
+
+            test do
+              assert_predicate bin/"piktakd", :executable?
+            end
+          end
+          RUBY
+
+      - name: Commit formula to main
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          git checkout main
+          mkdir -p Formula
+          cp /tmp/piktak-formula/piktak.rb Formula/piktak.rb
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add Formula/piktak.rb
+          git diff --cached --quiet && exit 0
+          git commit -m "formula: update piktak to ${VERSION}"
+          git push origin main

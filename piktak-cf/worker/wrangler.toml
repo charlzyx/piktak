@@ -1,0 +1,28 @@
+name = "piktak"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+
+# Comma-separated allowlist of machine codes permitted to attach as a host.
+# "1" = require a Cloudflare Access JWT (cf-access-jwt-assertion) on every
+# browser path (HTTP + WS tunnel). Keep /host on a separate hostname or Access
+# bypass rule: Machine attachment is protected by the pairing code, while
+# browser requests are protected by Access.
+[vars]
+# Set to "1" after Cloudflare Access protects every browser hostname.
+PIKTAK_REQUIRE_ACCESS = "0"
+
+# Store PIKTAK_CODES as a secret, never in this file:
+#   openssl rand -hex 16 | npx wrangler secret put PIKTAK_CODES
+
+# The host session (the live host WebSocket + per-connId browser-response
+# buffers) lives in a single Durable Object so the host's WS attach and every
+# browser HTTP request land on the SAME isolate — a plain Worker's module
+# scope is per-isolate, which split host-attach and browser-HTTP across
+# colos and produced 502 {"error":"no host"}.
+[[durable_objects.bindings]]
+name = "PIKTAK_HOST"
+class_name = "PiktakRelay"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["PiktakRelay"]
